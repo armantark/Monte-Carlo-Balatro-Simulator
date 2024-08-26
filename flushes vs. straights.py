@@ -3,6 +3,7 @@ from collections import Counter
 
 SUIT_EMOJIS = {'H': '♥️', 'D': '♦️', 'C': '♣️', 'S': '♠️'}
 CARD_VALUES = {'A':14,'K':13,'Q':12,'J':11,'T':10,'9':9,'8':8,'7':7,'6':6,'5':5,'4':4,'3':3,'2':2}
+HAND_SIZE = 8
 
 def create_deck():
     ranks = '23456789TJQKA'
@@ -85,6 +86,7 @@ def simulate_draw(initial_hand, deck, target_hand_type, max_draws=3, debug=False
     hand = initial_hand.copy()
     random.shuffle(deck)
     draw_pile = deck.copy()
+    discard_pile = []  # Keep track of all discarded cards
 
     if debug:
         print(f"Starting {target_hand_type} attempt with hand: {[card_to_emoji(card) for card in sorted(hand, key=lambda x: CARD_VALUES[x[0]], reverse=True)]}")
@@ -118,10 +120,15 @@ def simulate_draw(initial_hand, deck, target_hand_type, max_draws=3, debug=False
             print(f"Draw {draw+1} - Keeping: {[card_to_emoji(card) for card in sorted([card for card in hand if card not in discard], key=lambda x: CARD_VALUES[x[0]], reverse=True)]}")
 
         hand = [card for card in hand if card not in discard]
+        discard_pile.extend(discard)  # Add discarded cards to discard pile
         draw_count = len(discard)
-        new_cards = draw_pile[:draw_count]
+        new_cards = []
+        for _ in range(draw_count):
+            if draw_pile:
+                new_cards.append(draw_pile.pop())
+            else:
+                break  # If draw pile is empty, stop drawing
         hand.extend(new_cards)
-        draw_pile = draw_pile[draw_count:]
 
         if debug:
             print(f"Draw {draw+1} - New hand: {[card_to_emoji(card) for card in sorted(hand, key=lambda x: CARD_VALUES[x[0]], reverse=True)]}")
@@ -148,7 +155,7 @@ def run_simulation(num_simulations=10000):
 
     print("Debugging a single straight attempt:")
     # Random starting hand
-    straight_hand = random.sample(deck, 8)
+    straight_hand = random.sample(deck, HAND_SIZE)
     # Fixed starting hand (uncomment to use)
     # straight_hand = ['AH', 'QD', 'JS', '9H', '4H', '2D', '2S', '2C']
     straight_deck = [card for card in deck if card not in straight_hand]
@@ -156,7 +163,7 @@ def run_simulation(num_simulations=10000):
 
     print("\nDebugging a single flush attempt:")
     # Random starting hand
-    flush_hand = random.sample(deck, 8)
+    flush_hand = random.sample(deck, HAND_SIZE)
     # Fixed starting hand (uncomment to use)
     # flush_hand = ['2H', '3H', '2D', '3D', '2C', '3C', '2S', '3S']
     flush_deck = [card for card in deck if card not in flush_hand]
@@ -165,7 +172,7 @@ def run_simulation(num_simulations=10000):
     print("\nRunning full simulation...")
     for _ in range(num_simulations):
         # Random starting hand
-        straight_hand = random.sample(deck, 8)
+        straight_hand = random.sample(deck, HAND_SIZE)
         # Fixed starting hand (uncomment to use)
         # straight_hand = ['7H', '7D', '7S', '7C', '2H', '2D', '2S', '2C']
         straight_deck = [card for card in deck if card not in straight_hand]
@@ -174,7 +181,7 @@ def run_simulation(num_simulations=10000):
             straight_successes += 1
         
         # Random starting hand
-        flush_hand = random.sample(deck, 8)
+        flush_hand = random.sample(deck, HAND_SIZE)
         # Fixed starting hand (uncomment to use)
         # flush_hand = ['2H', '3H', '2D', '3D', '2C', '3C', '2S', '3S']
         flush_deck = [card for card in deck if card not in flush_hand]
